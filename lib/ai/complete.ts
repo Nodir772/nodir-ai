@@ -6,7 +6,6 @@ import { buildModelContext } from "@/lib/ai/context";
 import { mapProviderError } from "@/lib/ai/errors";
 import { isOpenAiApiKeyPlausible } from "@/lib/ai/env";
 import { buildLocalAssistantReply, chunkLocalReply } from "@/lib/ai/local-fallback";
-import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { encodeSse } from "@/lib/ai/streaming";
 import { STREAM_HEADERS } from "@/lib/security/headers";
 import { observeResponse } from "@/lib/observability/monitor";
@@ -81,11 +80,7 @@ export function streamAiResponse(
       if (meta?.search) send({ type: "search", configured: meta.search.configured, error: meta.search.error });
       if (meta?.usedModel) send({ type: "model", ...meta.usedModel });
       try {
-        const skipProvider =
-          !client ||
-          !isOpenAiApiKeyPlausible() ||
-          openaiBillingBlocked() ||
-          !isSupabaseConfigured();
+        const skipProvider = !client || !isOpenAiApiKeyPlausible() || openaiBillingBlocked();
         if (!skipProvider && client) {
           const openaiMessages = context.messages.map((message, index) => {
             const isLastUser =
@@ -168,7 +163,7 @@ export async function completeAiText(
 ) {
   const localText = () => buildLocalAssistantReply(history);
   const client = getOpenAIClient();
-  if (!client || !isOpenAiApiKeyPlausible() || openaiBillingBlocked() || !isSupabaseConfigured()) {
+  if (!client || !isOpenAiApiKeyPlausible() || openaiBillingBlocked()) {
     return { ok: true as const, text: localText() };
   }
   const model = resolveProviderModel(isAllowedModelId(modelId ?? "") ? (modelId as AiModelId) : DEFAULT_MODEL_ID);

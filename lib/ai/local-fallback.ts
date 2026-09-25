@@ -220,7 +220,9 @@ export function buildLocalAssistantReply(history: AIMessage[], sources?: SearchH
   const fromWeb = answerFromSources(last, sources);
   if (fromWeb) return withSources(fromWeb, sources);
 
-  return last;
+  return isUzbek(last)
+    ? "Hozir haqiqiy model ulanmagan, shuning uchun bu savolga to'g'ri javob bera olmayman."
+    : "The real model is not connected, so I cannot answer this question yet.";
 }
 
 export function chunkLocalReply(text: string) {
